@@ -46,7 +46,10 @@ a{color:var(--yellow);}
 ::selection{background:var(--yellow);color:#1F2A24;}
 
 /* Layout */
-.app{min-height:100vh;display:flex;flex-direction:column;}
+.app{min-height:100vh;}
+.content-col{display:flex;flex-direction:column;min-height:100vh;}
+
+/* --- Narrow layout (phones, tablets in portrait): dropdown nav on top --- */
 .topbar{
   background:rgba(15,22,18,0.75);
   border-bottom:2px dashed var(--board-line);
@@ -80,8 +83,47 @@ a{color:var(--yellow);}
 .topic-meta .dot.done{background:var(--mint);border-color:var(--mint);}
 .topic-meta .dot.partial{background:var(--yellow);border-color:var(--yellow);}
 
+/* --- Wide layout (tablet landscape, laptop, desktop): full sidebar --- */
+.sidebar{display:none;}
+
 .main{flex:1;width:100%;max-width:900px;margin:0 auto;padding:30px 24px 60px;box-sizing:border-box;}
 
+@media (min-width:900px){
+  .app{display:flex;align-items:flex-start;}
+  .topbar{display:none;}
+  .sidebar{
+    display:block;
+    width:290px;flex-shrink:0;
+    background:rgba(15,22,18,0.55);
+    border-right:2px dashed var(--board-line);
+    padding:22px 16px 40px;
+    position:sticky;top:0;height:100vh;overflow-y:auto;
+    box-sizing:border-box;
+  }
+  .sidebar h1{font-size:2.1rem;color:var(--yellow);margin:0 0 2px;line-height:1;}
+  .sidebar .sub{font-size:.8rem;color:var(--chalk-dim);margin-bottom:18px;letter-spacing:.03em;}
+  .nav-group-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--chalk-dim);margin:18px 4px 8px;}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;
+    padding:9px 10px;margin-bottom:4px;border-radius:var(--radius);
+    cursor:pointer;font-size:.92rem;color:var(--chalk);
+    border:1px solid transparent;
+    transition:background .15s, border-color .15s;
+  }
+  .nav-item:hover{background:rgba(255,255,255,0.05);}
+  .nav-item.active{background:rgba(242,200,75,0.14);border-color:rgba(242,200,75,0.4);}
+  .nav-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;border:1.5px solid var(--chalk-dim);}
+  .nav-dot.done{background:var(--mint);border-color:var(--mint);}
+  .nav-dot.partial{background:var(--yellow);border-color:var(--yellow);}
+  .nav-badge{
+    margin-left:auto;font-family:'JetBrains Mono';font-size:.68rem;
+    background:var(--coral);color:#1a1a1a;border-radius:20px;padding:1px 7px;
+    font-weight:700;
+  }
+  .nav-special{margin-top:22px;padding-top:14px;border-top:1px dashed var(--board-line);}
+  .content-col{flex:1;min-width:0;}
+  .main{padding:34px 44px;max-width:920px;}
+}
 @media (max-width:600px){
   .topbar{padding:14px 16px;}
   .topbar h1{font-size:1.55rem;}
@@ -177,8 +219,11 @@ svg#pgSvg{background:var(--board-alt);border:1px solid var(--board-line);border-
 </head>
 <body>
 <div class="app">
-  <header class="topbar" id="topbar"></header>
-  <main class="main" id="main"></main>
+  <nav class="sidebar" id="sidebarNav"></nav>
+  <div class="content-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="main" id="main"></main>
+  </div>
 </div>
 
 <script>
@@ -1524,6 +1569,7 @@ function dueCount(){
 /* ============================= RENDER: SIDEBAR ============================= */
 function renderSidebar(){
   const tb = document.getElementById('topbar');
+  const sb = document.getElementById('sidebarNav');
   let groups = {};
   TOPICS.forEach(t => { (groups[t.unit] = groups[t.unit]||[]).push(t); });
 
@@ -1533,6 +1579,7 @@ function renderSidebar(){
     : currentView==='playground' ? 'view:playground'
     : `topic:${currentTopicId}`;
 
+  /* ---- Dropdown (narrow / portrait layout) ---- */
   let optionsHtml = '';
   Object.keys(groups).forEach(unit => {
     optionsHtml += `<optgroup label="${unit}">`;
@@ -1569,6 +1616,40 @@ function renderSidebar(){
       </div>
       ${metaHtml}
     </div>`;
+
+  /* ---- Full list (wide / landscape layout) ---- */
+  let listHtml = `<h1>Math Mastery</h1><div class="sub">chalkboard mastery · Units 8–14</div>`;
+  Object.keys(groups).forEach(unit => {
+    listHtml += `<div class="nav-group-label">${unit}</div>`;
+    groups[unit].forEach(t => {
+      const stats = topicStats(t);
+      const dotClass = stats.answered===0 ? '' : (stats.complete ? 'done' : 'partial');
+      listHtml += `<div class="nav-item ${selectedValue==='topic:'+t.id ? 'active':''}" onclick="goTopic('${t.id}')">
+        <span class="nav-dot ${dotClass}"></span>
+        <span>${t.title}</span>
+      </div>`;
+    });
+  });
+  listHtml += `<div class="nav-special">
+    <div class="nav-item ${currentView==='review'?'active':''}" onclick="goReview()">
+      <span class="nav-dot" style="background:var(--coral);border-color:var(--coral)"></span>
+      <span>Spaced Review</span>
+      ${due>0? `<span class="nav-badge">${due}</span>`:''}
+    </div>
+    <div class="nav-item ${currentView==='dashboard'?'active':''}" onclick="goDashboard()">
+      <span class="nav-dot" style="background:var(--blue);border-color:var(--blue)"></span>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-item ${currentView==='playground'?'active':''}" onclick="goPlayground()">
+      <span class="nav-dot" style="background:var(--lilac);border-color:var(--lilac)"></span>
+      <span>Vector Playground</span>
+    </div>
+    <div class="nav-item" onclick="resetAll()">
+      <span class="nav-dot" style="background:var(--board-line);border-color:var(--chalk-dim)"></span>
+      <span style="color:var(--chalk-dim)">Reset progress</span>
+    </div>
+  </div>`;
+  sb.innerHTML = listHtml;
 }
 
 function onNavSelect(value){
