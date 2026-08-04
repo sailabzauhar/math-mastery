@@ -1522,9 +1522,6 @@ let reviewRevealed = false;
 
 const todayStr = () => new Date().toISOString().slice(0,10);
 
-/* Storage layer: plain localStorage, since this build runs standalone
-   (installed app / browser tab), not inside the Claude.ai artifact
-   sandbox where window.storage would have been available instead. */
 const LS_KEY_QUIZ = 'mathMastery.quizAnswers';
 const LS_KEY_SM2   = 'mathMastery.sm2Schedule';
 
@@ -1965,8 +1962,26 @@ function onViewportChange(){
 window.addEventListener('resize', onViewportChange);
 window.addEventListener('orientationchange', onViewportChange);
 
+/* When running as an installed app (standalone display mode), Android's
+   WebAPK wrapper sometimes enforces whatever orientation was baked in at
+   install time, independent of the current manifest.json — that baked-in
+   value is controlled by a Google-run service and can lag behind a
+   manifest update by a long time. Asking the Screen Orientation API to
+   unlock at runtime is a second, independent way to free up rotation
+   that does not depend on that caching layer at all. Safe to attempt
+   even where unsupported — errors are simply ignored. */
+function tryUnlockOrientation(){
+  try{
+    const standalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+    if(standalone && window.screen && window.screen.orientation && window.screen.orientation.unlock){
+      window.screen.orientation.unlock();
+    }
+  }catch(e){ /* not supported here — ignore */ }
+}
+
 /* ============================= INIT ============================= */
 async function init(){
+  tryUnlockOrientation();
   applyLayoutMode();
   await loadState();
   currentTopicId = TOPICS[0].id;
