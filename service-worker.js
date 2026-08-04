@@ -1,4 +1,4 @@
-const CACHE_NAME = 'math-mastery-v1';
+const CACHE_NAME = 'math-mastery-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -24,18 +24,20 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Cache-first, falling back to network, so the app works fully offline
-// once it has been opened once.
+// Network-first: always try to fetch the latest version when online (so
+// updates you upload to GitHub show up the next time the app is opened),
+// and only fall back to the cached copy when there is no network at all.
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        if (response && response.status === 200 && event.request.method === 'GET') {
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return response;
-      }).catch(() => cached);
-    })
+      })
+      .catch(() => caches.match(event.request))
   );
 });
