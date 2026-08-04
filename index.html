@@ -46,41 +46,47 @@ a{color:var(--yellow);}
 ::selection{background:var(--yellow);color:#1F2A24;}
 
 /* Layout */
-.app{display:flex;min-height:100vh;}
-.sidebar{
-  width:290px;flex-shrink:0;
-  background:rgba(15,22,18,0.55);
-  border-right:2px dashed var(--board-line);
-  padding:22px 16px 40px;
-  position:sticky;top:0;height:100vh;overflow-y:auto;
+.app{min-height:100vh;display:flex;flex-direction:column;}
+.topbar{
+  background:rgba(15,22,18,0.75);
+  border-bottom:2px dashed var(--board-line);
+  padding:18px 20px;
+  position:sticky;top:0;z-index:20;
+  backdrop-filter:blur(6px);
 }
-.sidebar h1{font-size:2.1rem;color:var(--yellow);margin:0 0 2px;line-height:1;}
-.sidebar .sub{font-size:.8rem;color:var(--chalk-dim);margin-bottom:18px;letter-spacing:.03em;}
-.nav-group-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--chalk-dim);margin:18px 4px 8px;}
-.nav-item{
-  display:flex;align-items:center;gap:10px;
-  padding:9px 10px;margin-bottom:4px;border-radius:var(--radius);
-  cursor:pointer;font-size:.92rem;color:var(--chalk);
-  border:1px solid transparent;
-  transition:background .15s, border-color .15s;
+.topbar-inner{max-width:900px;margin:0 auto;}
+.topbar h1{font-size:1.9rem;color:var(--yellow);margin:0 0 1px;line-height:1;display:inline-block;}
+.topbar .sub{font-size:.76rem;color:var(--chalk-dim);letter-spacing:.03em;margin-bottom:14px;}
+.nav-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.chapter-select{
+  flex:1;min-width:220px;
+  appearance:none;-webkit-appearance:none;
+  background:var(--board-alt) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23F2C84B" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>') no-repeat right 14px center;
+  border:1.5px solid var(--board-line);
+  color:var(--chalk);
+  font-family:'Literata';font-size:1rem;
+  padding:11px 40px 11px 14px;
+  border-radius:8px;cursor:pointer;
+  transition:border-color .15s;
 }
-.nav-item:hover{background:rgba(255,255,255,0.05);}
-.nav-item.active{background:rgba(242,200,75,0.14);border-color:rgba(242,200,75,0.4);}
-.nav-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;border:1.5px solid var(--chalk-dim);}
-.nav-dot.done{background:var(--mint);border-color:var(--mint);}
-.nav-dot.partial{background:var(--yellow);border-color:var(--yellow);}
-.nav-badge{
-  margin-left:auto;font-family:'JetBrains Mono';font-size:.68rem;
-  background:var(--coral);color:#1a1a1a;border-radius:20px;padding:1px 7px;
-  font-weight:700;
+.chapter-select:hover, .chapter-select:focus{border-color:var(--yellow);outline:none;}
+.chapter-select optgroup{background:var(--board);color:var(--mint);font-family:'JetBrains Mono';font-style:normal;font-size:.78rem;}
+.chapter-select option{background:var(--board-alt);color:var(--chalk);font-family:'Literata';padding:6px;}
+.topic-meta{
+  font-family:'JetBrains Mono';font-size:.78rem;color:var(--chalk-dim);
+  margin-top:8px;display:flex;gap:14px;flex-wrap:wrap;
 }
-.nav-special{margin-top:22px;padding-top:14px;border-top:1px dashed var(--board-line);}
+.topic-meta .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;border:1.5px solid var(--chalk-dim);}
+.topic-meta .dot.done{background:var(--mint);border-color:var(--mint);}
+.topic-meta .dot.partial{background:var(--yellow);border-color:var(--yellow);}
 
-.main{flex:1;padding:34px 44px;max-width:920px;}
-@media (max-width:860px){
-  .app{flex-direction:column;}
-  .sidebar{width:100%;height:auto;position:relative;border-right:none;border-bottom:2px dashed var(--board-line);}
-  .main{padding:22px;}
+.main{flex:1;width:100%;max-width:900px;margin:0 auto;padding:30px 24px 60px;box-sizing:border-box;}
+
+@media (max-width:600px){
+  .topbar{padding:14px 16px;}
+  .topbar h1{font-size:1.55rem;}
+  .main{padding:20px 16px 50px;}
+  .chapter-select{font-size:.92rem;padding:10px 36px 10px 12px;}
 }
 
 /* Chalk headings & content blocks */
@@ -163,7 +169,7 @@ a{color:var(--yellow);}
 .pg-controls label{display:block;font-family:'JetBrains Mono';font-size:.78rem;color:var(--chalk-dim);margin:12px 0 4px;}
 .pg-controls input[type=range]{width:100%;accent-color:var(--yellow);}
 .pg-readout{font-family:'JetBrains Mono';font-size:.85rem;background:var(--board);border-radius:6px;padding:10px 12px;margin-top:14px;line-height:1.7;}
-svg#pgSvg{background:var(--board-alt);border:1px solid var(--board-line);border-radius:var(--radius);}
+svg#pgSvg{background:var(--board-alt);border:1px solid var(--board-line);border-radius:var(--radius);width:100%;max-width:400px;height:auto;display:block;margin:0 auto;}
 
 .empty-state{color:var(--chalk-dim);font-style:italic;text-align:center;padding:40px 0;}
 .completion-check{color:var(--mint);font-family:'JetBrains Mono';font-size:.85rem;margin-top:16px;}
@@ -171,7 +177,7 @@ svg#pgSvg{background:var(--board-alt);border:1px solid var(--board-line);border-
 </head>
 <body>
 <div class="app">
-  <nav class="sidebar" id="sidebar"></nav>
+  <header class="topbar" id="topbar"></header>
   <main class="main" id="main"></main>
 </div>
 
@@ -1517,42 +1523,62 @@ function dueCount(){
 
 /* ============================= RENDER: SIDEBAR ============================= */
 function renderSidebar(){
-  const sb = document.getElementById('sidebar');
+  const tb = document.getElementById('topbar');
   let groups = {};
   TOPICS.forEach(t => { (groups[t.unit] = groups[t.unit]||[]).push(t); });
-  let html = `<h1>Math Mastery</h1><div class="sub">chalkboard mastery · Units 8–14</div>`;
+
+  const due = dueCount();
+  const selectedValue = currentView==='review' ? 'view:review'
+    : currentView==='dashboard' ? 'view:dashboard'
+    : currentView==='playground' ? 'view:playground'
+    : `topic:${currentTopicId}`;
+
+  let optionsHtml = '';
   Object.keys(groups).forEach(unit => {
-    html += `<div class="nav-group-label">${unit}</div>`;
+    optionsHtml += `<optgroup label="${unit}">`;
     groups[unit].forEach(t => {
       const stats = topicStats(t);
-      const dotClass = stats.answered===0 ? '' : (stats.complete ? 'done' : 'partial');
-      html += `<div class="nav-item ${currentTopicId===t.id && currentView!=='dashboard' && currentView!=='playground' ? 'active':''}" onclick="goTopic('${t.id}')">
-        <span class="nav-dot ${dotClass}"></span>
-        <span>${t.title}</span>
-      </div>`;
+      const mark = stats.answered===0 ? '' : (stats.complete ? ' ✓' : ` ${stats.correct}/${stats.total}`);
+      optionsHtml += `<option value="topic:${t.id}" ${selectedValue==='topic:'+t.id?'selected':''}>${t.title}${mark}</option>`;
     });
+    optionsHtml += `</optgroup>`;
   });
-  const due = dueCount();
-  html += `<div class="nav-special">
-    <div class="nav-item ${currentView==='review'?'active':''}" onclick="goReview()">
-      <span class="nav-dot" style="background:var(--coral);border-color:var(--coral)"></span>
-      <span>Spaced Review</span>
-      ${due>0? `<span class="nav-badge">${due}</span>`:''}
-    </div>
-    <div class="nav-item ${currentView==='dashboard'?'active':''}" onclick="goDashboard()">
-      <span class="nav-dot" style="background:var(--blue);border-color:var(--blue)"></span>
-      <span>Dashboard</span>
-    </div>
-    <div class="nav-item ${currentView==='playground'?'active':''}" onclick="goPlayground()">
-      <span class="nav-dot" style="background:var(--lilac);border-color:var(--lilac)"></span>
-      <span>Vector Playground</span>
-    </div>
-    <div class="nav-item" onclick="resetAll()">
-      <span class="nav-dot" style="background:var(--board-line);border-color:var(--chalk-dim)"></span>
-      <span style="color:var(--chalk-dim)">Reset progress</span>
-    </div>
-  </div>`;
-  sb.innerHTML = html;
+  optionsHtml += `<optgroup label="More">
+    <option value="view:review" ${selectedValue==='view:review'?'selected':''}>Spaced Review${due>0? ' ('+due+' due)':''}</option>
+    <option value="view:dashboard" ${selectedValue==='view:dashboard'?'selected':''}>Dashboard</option>
+    <option value="view:playground" ${selectedValue==='view:playground'?'selected':''}>Vector Playground</option>
+  </optgroup>`;
+
+  let metaHtml = '';
+  if(currentView!=='review' && currentView!=='dashboard' && currentView!=='playground'){
+    const topic = TOPICS.find(t=>t.id===currentTopicId);
+    if(topic){
+      const stats = topicStats(topic);
+      const dotClass = stats.answered===0 ? '' : (stats.complete ? 'done' : 'partial');
+      metaHtml = `<div class="topic-meta"><span><span class="dot ${dotClass}"></span>${stats.answered}/${stats.total} answered${stats.answered>0? ' · '+stats.pct+'% correct':''}</span></div>`;
+    }
+  }
+
+  tb.innerHTML = `
+    <div class="topbar-inner">
+      <h1>Math Mastery</h1>
+      <div class="sub">chalkboard mastery · Units 8–14${due>0? ' · '+due+' review card(s) due':''}</div>
+      <div class="nav-row">
+        <select class="chapter-select" onchange="onNavSelect(this.value)">${optionsHtml}</select>
+        <button class="btn" onclick="resetAll()" title="Clear all quiz progress and the spaced-repetition schedule">Reset</button>
+      </div>
+      ${metaHtml}
+    </div>`;
+}
+
+function onNavSelect(value){
+  const [kind, id] = value.split(':');
+  if(kind==='topic') goTopic(id);
+  else if(kind==='view'){
+    if(id==='review') goReview();
+    else if(id==='dashboard') goDashboard();
+    else if(id==='playground') goPlayground();
+  }
 }
 
 /* ============================= NAV ACTIONS ============================= */
