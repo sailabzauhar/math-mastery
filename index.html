@@ -1510,7 +1510,8 @@ function sm2Update(item, quality){
 /* ============================= STATE ============================= */
 let STATE = {
   quizAnswers: {},   // { qid: {selected, correct} }
-  sm2: {}            // { qid: {ef, reps, interval, due} }
+  sm2: {},           // { qid: {ef, reps, interval, due} }
+  layoutPref: 'auto' // 'auto' | 'wide' | 'narrow' — user's manual layout override, if any
 };
 let currentTopicId = null;
 let currentView = 'notes'; // notes | quiz | review | dashboard | playground
@@ -1524,6 +1525,7 @@ const todayStr = () => new Date().toISOString().slice(0,10);
 
 const LS_KEY_QUIZ = 'mathMastery.quizAnswers';
 const LS_KEY_SM2   = 'mathMastery.sm2Schedule';
+const LS_KEY_LAYOUT = 'mathMastery.layoutPref';
 
 async function loadState(){
   try{
@@ -1534,12 +1536,19 @@ async function loadState(){
     const sm = localStorage.getItem(LS_KEY_SM2);
     if(sm) STATE.sm2 = JSON.parse(sm);
   }catch(e){ console.error('load sm2 failed', e); }
+  try{
+    const lp = localStorage.getItem(LS_KEY_LAYOUT);
+    if(lp) STATE.layoutPref = lp;
+  }catch(e){ console.error('load layout pref failed', e); }
 }
 async function saveAnswers(){
   try{ localStorage.setItem(LS_KEY_QUIZ, JSON.stringify(STATE.quizAnswers)); }catch(e){ console.error('save answers failed', e); }
 }
 async function saveSm2(){
   try{ localStorage.setItem(LS_KEY_SM2, JSON.stringify(STATE.sm2)); }catch(e){ console.error('save sm2 failed', e); }
+}
+async function saveLayoutPref(){
+  try{ localStorage.setItem(LS_KEY_LAYOUT, STATE.layoutPref); }catch(e){ console.error('save layout pref failed', e); }
 }
 
 function allQuestions(){
@@ -1604,12 +1613,17 @@ function renderSidebar(){
     }
   }
 
+  const layoutLabel = STATE.layoutPref === 'wide' ? 'Layout: Sidebar 🔒'
+    : STATE.layoutPref === 'narrow' ? 'Layout: Dropdown 🔒'
+    : `Layout: Auto (${isWideLayout ? 'Sidebar' : 'Dropdown'})`;
+
   tb.innerHTML = `
     <div class="topbar-inner">
       <h1>Math Mastery</h1>
       <div class="sub">chalkboard mastery · Units 8–14${due>0? ' · '+due+' review card(s) due':''}</div>
       <div class="nav-row">
         <select class="chapter-select" onchange="onNavSelect(this.value)">${optionsHtml}</select>
+        <button class="btn" onclick="toggleLayoutPref()" title="Force sidebar or dropdown navigation, or let it follow device orientation automatically">${layoutLabel}</button>
         <button class="btn" onclick="resetAll()" title="Clear all quiz progress and the spaced-repetition schedule">Reset</button>
       </div>
       ${metaHtml}
@@ -1641,6 +1655,10 @@ function renderSidebar(){
     <div class="nav-item ${currentView==='playground'?'active':''}" onclick="goPlayground()">
       <span class="nav-dot" style="background:var(--lilac);border-color:var(--lilac)"></span>
       <span>Vector Playground</span>
+    </div>
+    <div class="nav-item" onclick="toggleLayoutPref()" title="Force sidebar or dropdown navigation, or let it follow device orientation automatically">
+      <span class="nav-dot" style="background:var(--yellow);border-color:var(--yellow)"></span>
+      <span>${layoutLabel}</span>
     </div>
     <div class="nav-item" onclick="resetAll()">
       <span class="nav-dot" style="background:var(--board-line);border-color:var(--chalk-dim)"></span>
@@ -1951,8 +1969,24 @@ function computeIsWide(){
 }
 let isWideLayout = computeIsWide();
 function applyLayoutMode(){
-  isWideLayout = computeIsWide();
+  if(STATE.layoutPref === 'wide') isWideLayout = true;
+  else if(STATE.layoutPref === 'narrow') isWideLayout = false;
+  else isWideLayout = computeIsWide();
   document.body.classList.toggle('layout-wide', isWideLayout);
+}
+async function toggleLayoutPref(){
+  // Cycles: auto -> (whatever auto currently is NOT) -> the other manual state -> back to auto.
+  // In practice this gives a simple two-tap "force the other layout" / "back to automatic" flow.
+  if(STATE.layoutPref === 'auto'){
+    STATE.layoutPref = isWideLayout ? 'narrow' : 'wide';
+  } else if(STATE.layoutPref === 'wide'){
+    STATE.layoutPref = 'narrow';
+  } else {
+    STATE.layoutPref = 'auto';
+  }
+  await saveLayoutPref();
+  applyLayoutMode();
+  renderSidebar();
 }
 let layoutResizeTimer = null;
 function onViewportChange(){
@@ -1982,8 +2016,8 @@ function tryUnlockOrientation(){
 /* ============================= INIT ============================= */
 async function init(){
   tryUnlockOrientation();
-  applyLayoutMode();
   await loadState();
+  applyLayoutMode();
   currentTopicId = TOPICS[0].id;
   renderSidebar();
   renderMain();
