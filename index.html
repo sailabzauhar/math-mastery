@@ -1938,17 +1938,23 @@ function updatePlayground(){
 }
 
 /* ============================= RESPONSIVE LAYOUT MODE ============================= */
-/* Switches between the wide sidebar layout and the narrow dropdown layout.
-   Uses a buffer zone (enter wide at >=920px, only leave wide below 840px)
-   instead of a single breakpoint, so a viewport width sitting right at the
-   edge (e.g. exactly around 900px, or one that shifts by a few pixels due
-   to a scrollbar appearing/disappearing) cannot cause the layout to flicker
-   back and forth on its own. */
-let isWideLayout = window.innerWidth >= 900;
+/* Switches between the wide sidebar layout (landscape) and the narrow
+   dropdown layout (portrait), reading the device's actual orientation
+   rather than guessing from pixel width. A width-based cutoff had to be
+   calibrated per device and was either too high (sidebar never appears
+   on some tablets) or prone to flicker near the cutoff; orientation is a
+   discrete, jitter-free signal that only changes on a genuine rotation.
+   A minimum-width guard (600px) just prevents a cramped sidebar on very
+   narrow phones held sideways. */
+function computeIsWide(){
+  const landscape = window.matchMedia
+    ? window.matchMedia('(orientation: landscape)').matches
+    : window.innerWidth > window.innerHeight;
+  return landscape && window.innerWidth >= 600;
+}
+let isWideLayout = computeIsWide();
 function applyLayoutMode(){
-  const w = window.innerWidth;
-  if(!isWideLayout && w >= 920) isWideLayout = true;
-  else if(isWideLayout && w < 840) isWideLayout = false;
+  isWideLayout = computeIsWide();
   document.body.classList.toggle('layout-wide', isWideLayout);
 }
 let layoutResizeTimer = null;
